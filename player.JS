@@ -97,7 +97,6 @@
     if (cfg.loop) video.setAttribute("loop", "");
     video.style.cssText = "width:100%;height:100%;";
 
-    // ⚡ FIX: Explicitly satisfy strict browser autoplay policies at element creation level
     if (cfg.muted) {
       video.muted = true;
       video.setAttribute("muted", "");
@@ -131,10 +130,10 @@
     var videoEl   = document.getElementById(cfg.divId + "_video");
     if (!container || !videoEl) return;
 
-    // ⚡ INSTANCE CHECK GUARD
-    // Aborts initialization if Video.js already set up an active layer here
-    if (videojs.getPlayer(videoEl.id)) {
-      step("5.5", "Existing Video.js player instance detected. Aborting duplicate initialisation.");
+    // ⚡ BULLETPROOF DOM NODE TYPE & INSTANCE GUARD
+    // If the element has already been rewritten into a player DIV container, halt immediately
+    if (videoEl.nodeName !== "VIDEO" || videoEl.player || videojs.getPlayer(videoEl.id)) {
+      step("5.5", "Player canvas already initialized. Exiting initialization thread safely.");
       return;
     }
 
