@@ -1,6 +1,6 @@
 (function () {
   // ⚡ GLOBAL IDEMPOTENCY GUARD
-  // Instantly aborts execution if this script is embedded or triggered twice on the same page
+  // Prevents browser double-trigger anomalies by aborting if executed twice on a single page
   if (window.__adtech_engine_active__) return;
   window.__adtech_engine_active__ = true;
 
@@ -96,6 +96,16 @@
     video.setAttribute("preload", cfg.preload);
     if (cfg.loop) video.setAttribute("loop", "");
     video.style.cssText = "width:100%;height:100%;";
+
+    // ⚡ FIX: Explicitly satisfy strict browser autoplay policies at element creation level
+    if (cfg.muted) {
+      video.muted = true;
+      video.setAttribute("muted", "");
+    }
+    if (cfg.autoplay) {
+      video.setAttribute("autoplay", "");
+    }
+
     container.appendChild(video);
 
     if (currentScript && currentScript.parentNode) {
@@ -122,7 +132,7 @@
     if (!container || !videoEl) return;
 
     // ⚡ INSTANCE CHECK GUARD
-    // If Video.js already initialized an instance on this element ID, skip re-init execution
+    // Aborts initialization if Video.js already set up an active layer here
     if (videojs.getPlayer(videoEl.id)) {
       step("5.5", "Existing Video.js player instance detected. Aborting duplicate initialisation.");
       return;
