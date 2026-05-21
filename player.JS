@@ -1,6 +1,6 @@
-// Engine Version: 1.0.5 (Polished & Guarded Production Build)
+// Engine Version: 1.0.7 (Ultimate Guarded Build)
 (function () {
-  // ⚡ GLOBAL IDEMPOTENCY GUARD
+  // ⚡ GLOBAL INITIALIZATION GUARD
   if (window.__adtech_engine_active__) return;
   window.__adtech_engine_active__ = true;
 
@@ -28,7 +28,7 @@
     divId:       currentScript.getAttribute("data-div-id") || "comparos-video-placement",
     bidderHost:  currentScript.getAttribute("data-host") || "ads-jbi003.rtba.bidsxchange.com",
     cacheUrl:    currentScript.getAttribute("data-cache") || "https://prebid.adnxs.com/pbc/v1/cache",
-    prebidUrl:   currentScript.getAttribute("data-prebid-url") || "https://cdnjs.cloudflare.com/ajax/libs/prebid.js/6.7.0/prebid.js"
+    prebidUrl:   currentScript.getAttribute("data-prebid-url") || "prebid.js"
   };
 
   var DEBUG = /[?&]debug=true/i.test((window.location && window.location.search) || "");
@@ -126,29 +126,25 @@
       warn("Core software dependencies missing from engine context.");
       return;
     }
-    
-    // ⚡ CRITICAL VIDEOJS REGISTRY CHECK
-    // Scans Video.js's master registry array to verify if a player object is already running
-    if (videojs.players && videojs.players[cfg.divId + "_video"]) {
-      step("5.5", "Active Video.js core reference verified. Halting duplicate runtime thread.");
-      return;
-    }
-
     var container = document.getElementById(cfg.divId);
     var videoEl   = document.getElementById(cfg.divId + "_video");
     if (!container || !videoEl) return;
 
-    if (videoEl.nodeName !== "VIDEO") {
-      step("5.6", "Target DOM node already converted by Video.js wrapper elements. Aborting.");
-      return;
-    }
-
     var isHLS = /\.m3u8/i.test(cfg.videoUrl);
     var player;
-    try {
-      videoEl.className = "video-js vjs-default-skin vjs-big-play-centered";
-      player = videojs(videoEl, { autoplay: cfg.autoplay, muted: cfg.muted, controls: true, fluid: cfg.fluid, loop: cfg.loop, preload: cfg.preload, sources: [{ src: cfg.videoUrl, type: isHLS ? "application/x-mpegURL" : "video/mp4" }] });
-    } catch (e) { warn("player init: " + e.message); return; }
+
+    // ⚡ SAFEST INITIALIZATION STRATEGY
+    // Intercepts and binds to any pre-existing instances on this node elements tree
+    var existingPlayer = videojs.getPlayer(videoEl.id) || videojs.getPlayer(videoEl);
+    if (existingPlayer) {
+      player = existingPlayer;
+      step("5.5", "Re-bound safely to existing runtime Video.js instance framework.");
+    } else {
+      try {
+        videoEl.className = "video-js vjs-default-skin vjs-big-play-centered";
+        player = videojs(videoEl, { autoplay: cfg.autoplay, muted: cfg.muted, controls: true, fluid: cfg.fluid, loop: cfg.loop, preload: cfg.preload, sources: [{ src: cfg.videoUrl, type: isHLS ? "application/x-mpegURL" : "video/mp4" }] });
+      } catch (e) { warn("player init: " + e.message); return; }
+    }
 
     try {
       var vpMap = { insecure: google.ima.ImaSdkSettings.VpaidMode.INSECURE, enabled: google.ima.ImaSdkSettings.VpaidMode.ENABLED, disabled: google.ima.ImaSdkSettings.VpaidMode.DISABLED };
@@ -158,7 +154,11 @@
     } catch (e) { warn("vpaid: " + e.message); }
 
     player.ready(function () {
+      // Prevent attaching duplicate ad containers if already built
+      if (container.querySelector(".adtech-ad-overlay")) return;
+
       var adContainer = document.createElement("div");
+      adContainer.className = "adtech-ad-overlay";
       adContainer.style.cssText = "position:absolute;top:0;left:0;width:100%;height:100%;z-index:10;pointer-events:none;";
       container.style.position = container.style.position || "relative";
       container.appendChild(adContainer);
@@ -189,9 +189,9 @@
   }
 
   function runAuction() {
-    step(1, "Auction Initialized via CDN. Target: limelightDigital | Timeout: " + cfg.timeout + "ms");
+    step(1, "Auction Initialized via Local Pathing. Target: limelightDigital");
     if (typeof pbjs === "undefined") {
-      warn("Prebid failed network retrieval — Fallback active.");
+      warn("Prebid failed context retrieval — Fallback active.");
       setupPlayer(stitchTag(cfg.adTagUrl, "none", 0));
       return;
     }
