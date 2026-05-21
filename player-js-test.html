@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Comparos Mock Publisher Test Environment</title>
+  <title>Comparos Live Production Test Stage</title>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
@@ -48,13 +48,13 @@
 <body>
 
   <div class="wrapper">
-    <h1>Mock Publisher Stage</h1>
-    <p>This page simulates a live production article page layout. When it loads, your universal tag script calls the master architecture remotely from GitHub via the jsDelivr CDN cache grid.</p>
+    <h1>Comparos Production Integration Sandbox</h1>
+    <p>Testing live remote assets via Netlify deployment. This page executes our self-defending programmatic video engine, utilizing cache-busting queries to bypass CDN propagation latency.</p>
     
     <div class="publisher-ad-zone">
       <div class="ad-notice">Programmatic Video Advertisement Space</div>
       
-      <script src="https://cdn.jsdelivr.net/gh/aryanvani-pm/Player-engine@main/player.JS"
+      <script src="https://cdn.jsdelivr.net/gh/aryanvani-pm/Player-engine@main/player.JS?v=1.0.6"
               id="adtech-player-core"
               data-pub-id="649658371"
               data-adunit-id="972556929"
@@ -75,7 +75,7 @@
               async></script>
       </div>
 
-    <p>All core infrastructure assets—including Video.js themes, Google IMA runtime loaders, and your standalone repo <code>prebid.js</code> library—are handled on the fly using non-blocking asynchronous promises.</p>
+    <p>Telemetry metrics can be verified by appending <code>?debug=true</code> directly to your address bar URL field.</p>
   </div>
 
 </body>
