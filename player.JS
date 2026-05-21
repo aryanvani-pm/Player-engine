@@ -1,6 +1,10 @@
 (function () {
+  // ⚡ GLOBAL IDEMPOTENCY GUARD
+  // Instantly aborts execution if this script is embedded or triggered twice on the same page
+  if (window.__adtech_engine_active__) return;
+  window.__adtech_engine_active__ = true;
+
   // 1. DYNAMIC CONFIGURATION RETRIEVAL
-  // Instantly isolates the script element via ID to parse custom data attributes at runtime
   var currentScript = document.currentScript || document.getElementById("adtech-player-core");
   
   if (!currentScript) {
@@ -27,7 +31,6 @@
     prebidUrl:   currentScript.getAttribute("data-prebid-url") || "https://cdnjs.cloudflare.com/ajax/libs/prebid.js/6.7.0/prebid.js"
   };
 
-  // Enable debugging logs if URL parameter ?debug=true is present
   var DEBUG = /[?&]debug=true/i.test((window.location && window.location.search) || "");
   
   function step(n, m) { if (!DEBUG) return; try { console.log("%c STEP " + n + " %c " + m, "background:linear-gradient(90deg,#a370f7,#7c4dff);color:#fff;font-weight:bold;padding:2px 8px;border-radius:3px;", "color:#4ade80;"); } catch (_) {} }
@@ -87,7 +90,6 @@
 
     var video = document.createElement("video");
     video.id = cfg.divId + "_video";
-    // FIX: Removed 'video-js' class name from initial creation to prevent library auto-claiming
     video.className = "vjs-default-skin vjs-big-play-centered";
     video.setAttribute("playsinline", "");
     video.setAttribute("controls", "");
@@ -119,12 +121,17 @@
     var videoEl   = document.getElementById(cfg.divId + "_video");
     if (!container || !videoEl) return;
 
+    // ⚡ INSTANCE CHECK GUARD
+    // If Video.js already initialized an instance on this element ID, skip re-init execution
+    if (videojs.getPlayer(videoEl.id)) {
+      step("5.5", "Existing Video.js player instance detected. Aborting duplicate initialisation.");
+      return;
+    }
+
     var isHLS = /\.m3u8/i.test(cfg.videoUrl);
     var player;
     try {
-      // FIX: Dynamically assign target class properties safely right before explicit setup initialization
       videoEl.className = "video-js vjs-default-skin vjs-big-play-centered";
-      
       player = videojs(videoEl, { autoplay: cfg.autoplay, muted: cfg.muted, controls: true, fluid: cfg.fluid, loop: cfg.loop, preload: cfg.preload, sources: [{ src: cfg.videoUrl, type: isHLS ? "application/x-mpegURL" : "video/mp4" }] });
     } catch (e) { warn("player init: " + e.message); return; }
 
