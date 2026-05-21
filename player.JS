@@ -87,7 +87,8 @@
 
     var video = document.createElement("video");
     video.id = cfg.divId + "_video";
-    video.className = "video-js vjs-default-skin vjs-big-play-centered";
+    // FIX: Removed 'video-js' class name from initial creation to prevent library auto-claiming
+    video.className = "vjs-default-skin vjs-big-play-centered";
     video.setAttribute("playsinline", "");
     video.setAttribute("controls", "");
     video.setAttribute("preload", cfg.preload);
@@ -121,6 +122,9 @@
     var isHLS = /\.m3u8/i.test(cfg.videoUrl);
     var player;
     try {
+      // FIX: Dynamically assign target class properties safely right before explicit setup initialization
+      videoEl.className = "video-js vjs-default-skin vjs-big-play-centered";
+      
       player = videojs(videoEl, { autoplay: cfg.autoplay, muted: cfg.muted, controls: true, fluid: cfg.fluid, loop: cfg.loop, preload: cfg.preload, sources: [{ src: cfg.videoUrl, type: isHLS ? "application/x-mpegURL" : "video/mp4" }] });
     } catch (e) { warn("player init: " + e.message); return; }
 
