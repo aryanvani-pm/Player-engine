@@ -118,7 +118,15 @@
     var isHLS = /\.m3u8/i.test(cfg.videoUrl);
     var player;
     try {
-      player = videojs(videoEl, { autoplay: cfg.autoplay, muted: cfg.muted, controls: true, fluid: cfg.fluid, loop: cfg.loop, preload: cfg.preload, sources: [{ src: cfg.videoUrl, type: isHLS ? "application/x-mpegURL" : "video/mp4" }] });
+      if (videojs.getPlayer(videoEl.id)) {
+        player = videojs.getPlayer(videoEl.id);
+        player.src({ src: cfg.videoUrl, type: isHLS ? "application/x-mpegURL" : "video/mp4" });
+        if (cfg.autoplay) player.autoplay(cfg.autoplay);
+        player.muted(cfg.muted);
+        player.loop(cfg.loop);
+      } else {
+        player = videojs(videoEl, { autoplay: cfg.autoplay, muted: cfg.muted, controls: true, fluid: cfg.fluid, loop: cfg.loop, preload: cfg.preload, sources: [{ src: cfg.videoUrl, type: isHLS ? "application/x-mpegURL" : "video/mp4" }] });
+      }
     } catch (e) { warn("player init: " + e.message); return; }
 
     try {
