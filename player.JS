@@ -1,8 +1,12 @@
-// Engine Version: 1.0.7 (Ultimate Guarded Build)
+// Engine Version: 1.0.9 (Interactive Controls Production Build)
 (function () {
   // ⚡ GLOBAL INITIALIZATION GUARD
-  if (window.__adtech_engine_active__) return;
+  if (window.__adtech_engine_active__) {
+    console.warn("[AdTechPlayer] Engine already active on this page layout context.");
+    return;
+  }
   window.__adtech_engine_active__ = true;
+  window.__adtech_engine_version__ = "1.0.9";
 
   // 1. DYNAMIC CONFIGURATION RETRIEVAL
   var currentScript = document.currentScript || document.getElementById("adtech-player-core");
@@ -126,6 +130,7 @@
       warn("Core software dependencies missing from engine context.");
       return;
     }
+    
     var container = document.getElementById(cfg.divId);
     var videoEl   = document.getElementById(cfg.divId + "_video");
     if (!container || !videoEl) return;
@@ -133,14 +138,17 @@
     var isHLS = /\.m3u8/i.test(cfg.videoUrl);
     var player;
 
-    // ⚡ SAFEST INITIALIZATION STRATEGY
-    // Intercepts and binds to any pre-existing instances on this node elements tree
-    var existingPlayer = videojs.getPlayer(videoEl.id) || videojs.getPlayer(videoEl);
+    var existingPlayer = videojs.getPlayer(videoEl) || videojs.getPlayer(cfg.divId + "_video");
+    
     if (existingPlayer) {
       player = existingPlayer;
-      step("5.5", "Re-bound safely to existing runtime Video.js instance framework.");
+      step("5.5", "Reused existing engine instance safely.");
     } else {
       try {
+        if (videoEl.nodeName !== "VIDEO") {
+          step("5.6", "Target element already converted. Halting setup safely.");
+          return;
+        }
         videoEl.className = "video-js vjs-default-skin vjs-big-play-centered";
         player = videojs(videoEl, { autoplay: cfg.autoplay, muted: cfg.muted, controls: true, fluid: cfg.fluid, loop: cfg.loop, preload: cfg.preload, sources: [{ src: cfg.videoUrl, type: isHLS ? "application/x-mpegURL" : "video/mp4" }] });
       } catch (e) { warn("player init: " + e.message); return; }
@@ -154,25 +162,57 @@
     } catch (e) { warn("vpaid: " + e.message); }
 
     player.ready(function () {
-      // Prevent attaching duplicate ad containers if already built
       if (container.querySelector(".adtech-ad-overlay")) return;
 
       var adContainer = document.createElement("div");
       adContainer.className = "adtech-ad-overlay";
-      adContainer.style.cssText = "position:absolute;top:0;left:0;width:100%;height:100%;z-index:10;pointer-events:none;";
+      
+      // ⚡ FIX: Added 'display: none' initially to keep controls unfrozen before ads play
+      adContainer.style.cssText = "position:absolute;top:0;left:0;width:100%;height:100%;z-index:10;display:none;pointer-events:none;";
       container.style.position = container.style.position || "relative";
       container.appendChild(adContainer);
       
       try {
         var adc = new google.ima.AdDisplayContainer(adContainer, videoEl);
         var loader = new google.ima.AdsLoader(adc);
-        loader.addEventListener(google.ima.AdErrorEvent.Type.AD_ERROR, function () { try { player.play(); } catch (_) {} }, false);
+        
+        // Handle initial load failures cleanly by turning off the overlay grid
+        loader.addEventListener(google.ima.AdErrorEvent.Type.AD_ERROR, function () { 
+          adContainer.style.display = "none";
+          adContainer.style.pointerEvents = "none";
+          try { player.play(); } catch (_) {} 
+        }, false);
+        
         loader.addEventListener(google.ima.AdsManagerLoadedEvent.Type.ADS_MANAGER_LOADED, function (e) {
           var mgr = e.getAdsManager(videoEl);
-          mgr.addEventListener(google.ima.AdErrorEvent.Type.AD_ERROR, function () { try { mgr.destroy(); } catch (_) {} player.play().catch(function(){}); });
-          mgr.addEventListener(google.ima.AdEvent.Type.CONTENT_PAUSE_REQUESTED, function () { adContainer.style.pointerEvents = "auto"; player.pause(); });
-          mgr.addEventListener(google.ima.AdEvent.Type.CONTENT_RESUME_REQUESTED, function () { adContainer.style.pointerEvents = "none"; player.play().catch(function(){}); });
-          mgr.addEventListener(google.ima.AdEvent.Type.ALL_ADS_COMPLETED, function () { try { mgr.destroy(); } catch (_) {} });
+          
+          mgr.addEventListener(google.ima.AdErrorEvent.Type.AD_ERROR, function () { 
+            adContainer.style.display = "none";
+            adContainer.style.pointerEvents = "none";
+            try { mgr.destroy(); } catch (_) {} 
+            player.play().catch(function(){}); 
+          });
+          
+          // ⚡ Ad breaks in: show overlay and trap pointer inputs
+          mgr.addEventListener(google.ima.AdEvent.Type.CONTENT_PAUSE_REQUESTED, function () { 
+            adContainer.style.display = "block";
+            adContainer.style.pointerEvents = "auto"; 
+            player.pause(); 
+          });
+          
+          // ⚡ Ad drops out: drop overlay block instantly to clear UI access
+          mgr.addEventListener(google.ima.AdEvent.Type.CONTENT_RESUME_REQUESTED, function () { 
+            adContainer.style.display = "none";
+            adContainer.style.pointerEvents = "none"; 
+            player.play().catch(function(){}); 
+          });
+          
+          mgr.addEventListener(google.ima.AdEvent.Type.ALL_ADS_COMPLETED, function () { 
+            adContainer.style.display = "none";
+            adContainer.style.pointerEvents = "none";
+            try { mgr.destroy(); } catch (_) {} 
+          });
+          
           var w = container.offsetWidth || 640, h = container.offsetHeight || 360;
           mgr.init(w, h, google.ima.ViewMode.NORMAL); mgr.start();
         }, false);
