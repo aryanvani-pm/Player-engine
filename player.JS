@@ -1,6 +1,6 @@
+// Engine Version: 1.0.5 (Polished & Guarded Production Build)
 (function () {
   // ⚡ GLOBAL IDEMPOTENCY GUARD
-  // Prevents browser double-trigger anomalies by aborting if executed twice on a single page
   if (window.__adtech_engine_active__) return;
   window.__adtech_engine_active__ = true;
 
@@ -126,14 +126,20 @@
       warn("Core software dependencies missing from engine context.");
       return;
     }
+    
+    // ⚡ CRITICAL VIDEOJS REGISTRY CHECK
+    // Scans Video.js's master registry array to verify if a player object is already running
+    if (videojs.players && videojs.players[cfg.divId + "_video"]) {
+      step("5.5", "Active Video.js core reference verified. Halting duplicate runtime thread.");
+      return;
+    }
+
     var container = document.getElementById(cfg.divId);
     var videoEl   = document.getElementById(cfg.divId + "_video");
     if (!container || !videoEl) return;
 
-    // ⚡ BULLETPROOF DOM NODE TYPE & INSTANCE GUARD
-    // If the element has already been rewritten into a player DIV container, halt immediately
-    if (videoEl.nodeName !== "VIDEO" || videoEl.player || videojs.getPlayer(videoEl.id)) {
-      step("5.5", "Player canvas already initialized. Exiting initialization thread safely.");
+    if (videoEl.nodeName !== "VIDEO") {
+      step("5.6", "Target DOM node already converted by Video.js wrapper elements. Aborting.");
       return;
     }
 
