@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comparos Mock Publisher Test Environment</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+      background-color: #0f111a;
+      color: #e2e8f0;
+      line-height: 1.6;
+      margin: 0;
+      padding: 40px 20px;
+    }
+    .wrapper {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #1a1d29;
+      padding: 35px;
+      border-radius: 8px;
+      border: 1px solid #2d3142;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+    h1 { color: #fff; margin-top: 0; border-bottom: 1px solid #2d3142; padding-bottom: 15px; font-weight: 500; }
+    code { background: #0f111a; padding: 3px 6px; border-radius: 4px; color: #a370f7; font-family: monospace; }
+    
+    /* Publisher Ad Placement Styling */
+    .publisher-ad-zone {
+      margin: 35px 0;
+      padding: 12px;
+      background: #0f111a;
+      border: 1px dashed #4e546d;
+      border-radius: 6px;
+    }
+    .ad-notice {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #64748b;
+      margin-bottom: 10px;
+      text-align: center;
+      font-weight: 600;
+    }
+    p { color: #94a3b8; font-size: 15px; }
+  </style>
+</head>
+<body>
+
+  <div class="wrapper">
+    <h1>Mock Publisher Stage</h1>
+    <p>This page simulates a live production article page layout. When it loads, your universal tag script calls the master architecture remotely from GitHub via the jsDelivr CDN cache grid.</p>
+    
+    <div class="publisher-ad-zone">
+      <div class="ad-notice">Programmatic Video Advertisement Space</div>
+      
+      <script src="https://cdn.jsdelivr.net/gh/aryanvani-pm/Player-engine@main/player.JS"
+              id="adtech-player-core"
+              data-pub-id="649658371"
+              data-adunit-id="972556929"
+              data-tag="https://pubads.g.doubleclick.net/gampad/ads?iu=/21775744923/external/single_ad_samples&sz=640x480&cust_params=sample_ct%3Dlinear&ciu_szs=300x250%2C728x90&gdfp_req=1&output=vast&unviewed_position_start=1&env=vp&impl=s&correlator="
+              data-timeout="1200"
+              data-bias="0.10"
+              data-video="https://vjs.zencdn.net/v/oceans.mp4"
+              data-autoplay="true"
+              data-muted="true"
+              data-fluid="true"
+              data-loop="true"
+              data-preload="metadata"
+              data-vpaid="insecure"
+              data-div-id="comparos-video-placement"
+              data-host="ads-jbi003.rtba.bidsxchange.com"
+              data-cache="https://prebid.adnxs.com/pbc/v1/cache"
+              data-prebid-url="https://cdn.jsdelivr.net/gh/aryanvani-pm/Player-engine@main/prebid.js"
+              async></script>
+      </div>
+
+    <p>All core infrastructure assets—including Video.js themes, Google IMA runtime loaders, and your standalone repo <code>prebid.js</code> library—are handled on the fly using non-blocking asynchronous promises.</p>
+  </div>
+
+</body>
+</html>
